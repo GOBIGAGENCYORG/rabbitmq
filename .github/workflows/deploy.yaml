@@ -1,0 +1,31 @@
+name: RabbitMQ Deployment
+
+on:
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy RabbitMQ Container
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            # Pull latest RabbitMQ image
+            docker pull rabbitmq:management
+            
+            # Stop and remove existing container (if exists)
+            docker stop rabbitmq || true
+            docker rm rabbitmq || true
+            
+            # Start new container
+            docker run -d \
+              --name rabbitmq \
+              --restart always \
+              -p 5672:5672 \
+              -p 15672:15672 \
+              rabbitmq:management
+
+
